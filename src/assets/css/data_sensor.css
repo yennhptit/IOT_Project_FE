@@ -1,0 +1,52 @@
+.table-title {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 2rem; /* Adjust size as needed */
+  font-weight: bold;
+  color: rgb(79, 78, 78);
+}
+/* Tùy chỉnh màu đường viền của bảng và căn giữa nội dung */
+table.dataTable,
+table.dataTable th,
+table.dataTable td {
+  border: 2px solid #3498db; /* Màu xanh */
+  text-align: center; /* Căn giữa nội dung trong các ô */
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+}
+.form-select,
+.form-control {
+  width: 100%;
+  box-sizing: border-box; /* Bao gồm padding và border trong kích thước tổng thể */
+  height: 3.5rem; /* Chiều cao của phần tử */
+  padding: 0.75rem; /* Padding đồng bộ cho cả hai */
+  font-size: 1rem; /* Kích thước font */
+  line-height: 1.5; /* Đảm bảo văn bản không bị cắt bớt */
+  border-radius: 0.375rem; /* Bo góc phần tử */
+  border: 1px solid #ced4da; /* Border đồng bộ cho cả hai */
+  display: block; /* Đảm bảo phần tử là block-level */
+}
+
+.form-select {
+  -webkit-appearance: none; /* Xóa kiểu dáng mặc định của dropdown */
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: calc(
+    1.75rem + 2px
+  ); /* Điều chỉnh padding-right cho dropdown */
+}
+
+.form-control {
+  padding-right: calc(1.75rem + 2px); /* Điều chỉnh padding-right cho input */
+}
+
+.form-select-wrapper,
+.form-control-wrapper {
+  display: flex;
+  flex-direction: column; /* Đặt các phần tử theo chiều dọc */
+  align-items: flex-start; /* Canh lề trái cho các phần tử */
+  height: auto; /* Chiều cao tự động dựa trên nội dung */
+}
+
+.form-label {
+  margin-bottom: 3px; /* Khoảng cách giữa nhãn và ô nhập liệu */
+}

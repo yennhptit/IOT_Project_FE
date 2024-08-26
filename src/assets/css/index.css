@@ -1,0 +1,24 @@
+#temperature-alert {
+  margin-top: 5px; /* Cách biểu đồ 5px */
+}
+#humidity-alert {
+  margin-top: 5px;
+}
+#lux-alert {
+  margin-top: 5px;
+}
+@keyframes rotateFan {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#fanImage.rotate {
+  animation: rotateFan 1s linear infinite; /* Giảm thời gian từ 2s xuống 1s */
+}
+.menu-link {
+  pointer-events: auto; /* Đảm bảo rằng các sự kiện chuột được phép */
+}

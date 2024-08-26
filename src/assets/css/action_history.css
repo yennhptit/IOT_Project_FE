@@ -1,0 +1,15 @@
+.table-title {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 2rem; /* Adjust size as needed */
+  font-weight: bold;
+  color: rgb(79, 78, 78);
+}
+/* Tùy chỉnh màu đường viền của bảng và căn giữa nội dung */
+table.dataTable,
+table.dataTable th,
+table.dataTable td {
+  border: 2px solid #3498db; /* Màu xanh */
+  text-align: center; /* Căn giữa nội dung trong các ô */
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+}

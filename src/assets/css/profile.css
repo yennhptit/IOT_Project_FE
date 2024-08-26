@@ -1,0 +1,10 @@
+/* Đảm bảo liên kết luôn có đường gạch chân */
+.underline-link {
+  text-decoration: underline !important;
+}
+
+.underline-link:hover,
+.underline-link:focus,
+.underline-link:active {
+  text-decoration: underline !important;
+}
