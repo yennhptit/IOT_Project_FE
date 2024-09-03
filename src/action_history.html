@@ -362,8 +362,6 @@ License: For each use you must have a valid license purchased only from above li
                       >
                       <select id="filterDropdown" class="form-select">
                         <option value="#">Select...</option>
-                        <option value="device">Device</option>
-                        <option value="action">Action</option>
                         <option value="time">Time</option>
                       </select>
                     </div>
@@ -387,8 +385,10 @@ License: For each use you must have a valid license purchased only from above li
                     </div>
                     <div class="col-xxl-1">
                       <div class="form-label-space"></div>
-
-                      <button type="submit" class="btn btn-primary w-100">
+                      <button
+                        id="filterButton"
+                        class="btn btn-primary w-100 filterButton"
+                      >
                         Filter
                       </button>
                     </div>

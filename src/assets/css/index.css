@@ -22,3 +22,18 @@
 .menu-link {
   pointer-events: auto; /* Đảm bảo rằng các sự kiện chuột được phép */
 }
+/* Thêm hiệu ứng cho nút ON */
+.btn-success.active {
+  background-color: #28a745;
+  border-color: #28a745;
+  transform: scale(1.1); /* Tăng kích thước nút khi bật */
+  box-shadow: 0px 0px 15px rgba(40, 167, 69, 0.5); /* Thêm hiệu ứng bóng đổ */
+}
+
+/* Thêm hiệu ứng cho nút OFF */
+.btn-danger.active {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  transform: scale(1.1); /* Tăng kích thước nút khi bật */
+  box-shadow: 0px 0px 15px rgba(220, 53, 69, 0.5); /* Thêm hiệu ứng bóng đổ */
+}

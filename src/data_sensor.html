@@ -361,11 +361,6 @@ License: For each use you must have a valid license purchased only from above li
                       <select id="filterDropdown" class="form-select">
                         <option value="#">Select...</option>
                         <option value="time">Time</option>
-                        <option value="temperature">Temperature</option>
-                        <option value="humidity">Humidity</option>
-                        <option value="lux">Lux</option>
-                        <option value="fan">Fan</option>
-                        <option value="ac">Air Conditioner</option>
                       </select>
                     </div>
                     <div class="col-xxl-2 form-control-wrapper">
@@ -388,8 +383,10 @@ License: For each use you must have a valid license purchased only from above li
                     </div>
                     <div class="col-xxl-1">
                       <div class="form-label-space"></div>
-
-                      <button type="submit" class="btn btn-primary w-100">
+                      <button
+                        id="filterButton"
+                        class="btn btn-primary w-100 filterButton"
+                      >
                         Filter
                       </button>
                     </div>
@@ -403,12 +400,10 @@ License: For each use you must have a valid license purchased only from above li
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Time</th>
-                        <th>Temperature</th>
-                        <th>Humidity</th>
-                        <th>Lux</th>
-                        <th>Fan</th>
-                        <th>Air Conditioner</th>
+                        <th>Temperature (℃)</th>
+                        <th>Humidity (%)</th>
+                        <th>Light (Lux)</th>
+                        <th>Time (dd/MM/yyy hh:mm)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -526,12 +521,10 @@ License: For each use you must have a valid license purchased only from above li
               data: data,
               columns: [
                 { data: "ID" },
-                { data: "Time" },
                 { data: "Temperature" },
                 { data: "Humidity" },
-                { data: "Lux" },
-                { data: "Fan" },
-                { data: "Air Conditioner" },
+                { data: "Light" },
+                { data: "Time" },
               ],
               initComplete: function (settings, json) {
                 console.log(

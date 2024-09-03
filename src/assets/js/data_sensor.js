@@ -65,3 +65,12 @@ $("#example").DataTable({
     });
   },
 });
+document.addEventListener("DOMContentLoaded", function () {
+  var filterButton = document.getElementById("filterButton");
+
+  if (filterButton) {
+    filterButton.addEventListener("click", function () {});
+  } else {
+    console.error('Button with ID "filterButton" not found.');
+  }
+});

@@ -48,7 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("offButtonLight").classList.add("active");
       document.getElementById("onButtonLight").classList.remove("active");
     });
+  document.getElementById("offButtonLight").click();
+  document.getElementById("offAC").click();
+  document.getElementById("offButton").click();
 });
+
 // Thay đổi hình ảnh của điều hòa
 document.getElementById("onAC").addEventListener("click", function () {
   document.getElementById("acImage").src =

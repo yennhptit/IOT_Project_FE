@@ -811,7 +811,7 @@ var initMixedWidget_temp = function () {
   var height = parseInt(element.getAttribute("data-kt-height"));
 
   // Khởi tạo giá trị nhiệt độ ngẫu nhiên ban đầu
-  var initialTemperature = Math.floor(Math.random() * 100); // Giá trị ngẫu nhiên từ 0 đến 99
+  var initialTemperature = Math.floor(Math.random() * 90) + 10;
 
   var options = {
     series: [initialTemperature],
@@ -882,7 +882,7 @@ var initMixedWidget_temp = function () {
 
   // Hàm cập nhật nhiệt độ ngẫu nhiên
   function updateTemperature() {
-    var newTemperature = Math.floor(Math.random() * 100); // Giá trị ngẫu nhiên từ 0 đến 99
+    var newTemperature = Math.floor(Math.random() * 90) + 10; // Giá trị ngẫu nhiên từ 10 đến 99
     updateChart(newTemperature);
   }
 
@@ -955,7 +955,7 @@ var initMixedWidget_humidity = function () {
   var height = parseInt(element.getAttribute("data-kt-height"));
 
   // Khởi tạo giá trị độ ẩm ngẫu nhiên ban đầu
-  var initialHumidity = Math.floor(Math.random() * 100); // Giá trị ngẫu nhiên từ 0 đến 99
+  var initialHumidity = Math.floor(Math.random() * 90) + 10; // Giá trị ngẫu nhiên từ 10 đến 99
 
   var options = {
     series: [initialHumidity],
@@ -1026,7 +1026,7 @@ var initMixedWidget_humidity = function () {
 
   // Hàm cập nhật độ ẩm ngẫu nhiên
   function updateHumidity() {
-    var newHumidity = Math.floor(Math.random() * 100); // Giá trị ngẫu nhiên từ 0 đến 99
+    var newHumidity = Math.floor(Math.random() * 90) + 10;
     updateChart(newHumidity);
   }
 
