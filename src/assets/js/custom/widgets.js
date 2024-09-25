@@ -800,7 +800,6 @@ KTUtil.onDOMContentLoaded(function () {
 });
 
 // Nhiệt độ
-
 var initMixedWidget_temp = function () {
   var element = document.getElementById("kt_mixed_widget_temp_chart");
 
@@ -810,22 +809,15 @@ var initMixedWidget_temp = function () {
 
   var height = parseInt(element.getAttribute("data-kt-height"));
 
-  // Khởi tạo giá trị nhiệt độ ngẫu nhiên ban đầu
-  var initialTemperature = Math.floor(Math.random() * 90) + 10;
-
+  // Initialize chart with default value
   var options = {
-    series: [initialTemperature],
+    series: [0], // Start with 0
     chart: {
       fontFamily: "inherit",
       height: height,
       type: "radialBar",
       toolbar: {
         show: false,
-      },
-    },
-    grid: {
-      padding: {
-        //top: 0
       },
     },
     plotOptions: {
@@ -845,7 +837,7 @@ var initMixedWidget_temp = function () {
             fontSize: "13px",
             fontWeight: 500,
             offsetY: -4,
-            color: KTUtil.getCssVariableValue("--bs-gray-400"), // Màu cố định cho nhãn "Temperature"
+            color: KTUtil.getCssVariableValue("--bs-gray-400"),
           },
           value: {
             color: "#FF0000",
@@ -855,7 +847,7 @@ var initMixedWidget_temp = function () {
             offsetY: -40,
             show: true,
             formatter: function (val) {
-              return val + "°C"; // Thay đổi giá trị và thêm đơn vị "°C"
+              return val + "°C";
             },
           },
         },
@@ -870,23 +862,28 @@ var initMixedWidget_temp = function () {
       lineCap: "round",
     },
     labels: ["Temperature"],
-    grid: {
-      padding: {
-        bottom: 0,
-      },
-    },
   };
 
   var chart = new ApexCharts(element, options);
   chart.render();
 
-  // Hàm cập nhật nhiệt độ ngẫu nhiên
-  function updateTemperature() {
-    var newTemperature = Math.floor(Math.random() * 90) + 10; // Giá trị ngẫu nhiên từ 10 đến 99
-    updateChart(newTemperature);
+  // Fetch the latest temperature from the API
+  function fetchLatestTemperature() {
+    fetch("http://localhost:8080/api/sensor-data/sortByTime")
+      .then((response) => response.json())
+      .then((data) => {
+        const latestData = data[0]; // Get the most recent entry
+        if (latestData) {
+          const latestTemperature = latestData.temperature;
+          updateChart(latestTemperature);
+        }
+      })
+      .catch((error) =>
+        console.error("Error fetching temperature data:", error)
+      );
   }
 
-  // Hàm cập nhật biểu đồ và cảnh báo
+  // Update the chart and alerts
   function updateChart(temperature) {
     var color = "#FF0000";
     var alertMessage = "High temperature alert";
@@ -894,24 +891,23 @@ var initMixedWidget_temp = function () {
       '<i class="fas fa-exclamation-circle text-warning me-3 fs-3"></i>';
 
     if (temperature <= 5) {
-      color = "#1e90ff"; // Màu xanh lam (Rét Đậm)
+      color = "#1e90ff";
       alertMessage = "Very low temperature alert";
     } else if (temperature <= 15) {
-      color = "#00bfff"; // Màu xanh nhạt (Rét)
+      color = "#00bfff";
       alertMessage = "Low temperature alert";
     } else if (temperature <= 25) {
-      color = "#32cd32"; // Màu xanh lá cây (Bình Thường)
+      color = "#32cd32";
       alertMessage = "Normal temperature";
-      alertIcon = '<i class="fas fa-check-circle text-success me-3 fs-3"></i>'; // Icon tích màu xanh
+      alertIcon = '<i class="fas fa-check-circle text-success me-3 fs-3"></i>';
     } else if (temperature <= 30) {
-      color = "#ffa500"; // Màu cam (Nóng)
+      color = "#ffa500";
       alertMessage = "High temperature alert";
     } else {
-      color = "#ff4500"; // Màu đỏ (Siêu Nóng)
+      color = "#ff4500";
       alertMessage = "Very high temperature alert";
     }
 
-    // Cập nhật màu sắc và giá trị của biểu đồ
     chart.updateOptions({
       plotOptions: {
         radialBar: {
@@ -927,21 +923,21 @@ var initMixedWidget_temp = function () {
 
     chart.updateSeries([temperature]);
 
-    // Cập nhật cảnh báo nhiệt độ
+    // Update temperature alert
     document.getElementById("temperature-alert").innerHTML = `
       ${alertIcon}
       ${alertMessage}
     `;
   }
 
-  // Cập nhật biểu đồ và cảnh báo với giá trị nhiệt độ ban đầu
-  updateChart(initialTemperature);
+  // Fetch the latest temperature on page load
+  fetchLatestTemperature();
 
-  // Cập nhật nhiệt độ mỗi 10 giây
-  setInterval(updateTemperature, 5000);
+  // Update temperature every 2 seconds
+  setInterval(fetchLatestTemperature, 2000);
 };
 
-// Gọi hàm khởi tạo
+// Call the init function
 initMixedWidget_temp();
 
 // Độ ẩm
@@ -954,22 +950,15 @@ var initMixedWidget_humidity = function () {
 
   var height = parseInt(element.getAttribute("data-kt-height"));
 
-  // Khởi tạo giá trị độ ẩm ngẫu nhiên ban đầu
-  var initialHumidity = Math.floor(Math.random() * 90) + 10; // Giá trị ngẫu nhiên từ 10 đến 99
-
+  // Initialize chart with default value
   var options = {
-    series: [initialHumidity],
+    series: [0], // Start with 0
     chart: {
       fontFamily: "inherit",
       height: height,
       type: "radialBar",
       toolbar: {
         show: false,
-      },
-    },
-    grid: {
-      padding: {
-        //top: 0
       },
     },
     plotOptions: {
@@ -989,17 +978,17 @@ var initMixedWidget_humidity = function () {
             fontSize: "13px",
             fontWeight: 500,
             offsetY: -4,
-            color: KTUtil.getCssVariableValue("--bs-gray-400"), // Màu cố định cho nhãn "Humidity"
+            color: KTUtil.getCssVariableValue("--bs-gray-400"),
           },
           value: {
-            color: "#0000FF",
+            color: "#00bfff", // Default color for text
             fontFamily: "inherit",
             fontSize: "30px",
             fontWeight: 700,
             offsetY: -40,
             show: true,
             formatter: function (val) {
-              return val + "%"; // Thay đổi giá trị và thêm đơn vị "%"
+              return val + "%"; // Display as percentage
             },
           },
         },
@@ -1009,53 +998,56 @@ var initMixedWidget_humidity = function () {
         },
       },
     },
-    colors: ["#0000FF"],
+    colors: ["#00bfff"], // Default color
     stroke: {
       lineCap: "round",
     },
     labels: ["Humidity"],
-    grid: {
-      padding: {
-        bottom: 0,
-      },
-    },
   };
 
   var chart = new ApexCharts(element, options);
   chart.render();
 
-  // Hàm cập nhật độ ẩm ngẫu nhiên
-  function updateHumidity() {
-    var newHumidity = Math.floor(Math.random() * 90) + 10;
-    updateChart(newHumidity);
+  // Fetch the latest humidity from the API
+  function fetchLatestHumidity() {
+    fetch("http://localhost:8080/api/sensor-data/sortByTime")
+      .then((response) => response.json())
+      .then((data) => {
+        const latestData = data[0]; // Get the most recent entry
+        if (latestData) {
+          const latestHumidity = latestData.humidity;
+          updateChart(latestHumidity);
+        }
+      })
+      .catch((error) => console.error("Error fetching humidity data:", error));
   }
 
-  // Hàm cập nhật biểu đồ và cảnh báo
+  // Update the chart and alerts
   function updateChart(humidity) {
-    var color = "#0000FF";
-    var alertMessage = "High humidity alert";
+    var color = "#00bfff"; // Default color
+    var alertMessage = "Humidity level is normal";
     var alertIcon =
-      '<i class="fas fa-exclamation-circle text-warning me-3 fs-3"></i>';
+      '<i class="fas fa-check-circle text-success me-3 fs-3"></i>';
 
-    if (humidity <= 20) {
-      color = "#1e90ff"; // Màu xanh lam (Rất khô)
+    if (humidity <= 30) {
+      color = "#1e90ff"; // Light blue for very low humidity
       alertMessage = "Very low humidity alert";
-    } else if (humidity <= 40) {
-      color = "#00bfff"; // Màu xanh nhạt (Khô)
+      alertIcon =
+        '<i class="fas fa-exclamation-circle text-danger me-3 fs-3"></i>';
+    } else if (humidity <= 50) {
+      color = "#00bfff"; // Medium blue for low humidity
       alertMessage = "Low humidity alert";
-    } else if (humidity <= 60) {
-      color = "#32cd32"; // Màu xanh lá cây (Bình Thường)
+    } else if (humidity <= 70) {
+      color = "#007bff"; // Dark blue for normal humidity
       alertMessage = "Normal humidity";
-      alertIcon = '<i class="fas fa-check-circle text-success me-3 fs-3"></i>'; // Icon tích màu xanh
-    } else if (humidity <= 80) {
-      color = "#ffa500"; // Màu cam (Ẩm)
-      alertMessage = "High humidity alert";
     } else {
-      color = "#ff4500"; // Màu đỏ (Rất Ẩm)
-      alertMessage = "Very high humidity alert";
+      color = "#003f7f"; // Darker blue for high humidity
+      alertMessage = "High humidity alert";
+      alertIcon =
+        '<i class="fas fa-exclamation-circle text-warning me-3 fs-3"></i>';
     }
 
-    // Cập nhật màu sắc và giá trị của biểu đồ
+    // Update chart color based on humidity level
     chart.updateOptions({
       plotOptions: {
         radialBar: {
@@ -1071,23 +1063,24 @@ var initMixedWidget_humidity = function () {
 
     chart.updateSeries([humidity]);
 
-    // Cập nhật cảnh báo độ ẩm
+    // Update humidity alert
     document.getElementById("humidity-alert").innerHTML = `
       ${alertIcon}
       ${alertMessage}
     `;
   }
 
-  // Cập nhật biểu đồ và cảnh báo với giá trị độ ẩm ban đầu
-  updateChart(initialHumidity);
+  // Fetch the latest humidity on page load
+  fetchLatestHumidity();
 
-  // Cập nhật độ ẩm mỗi 10 giây
-  setInterval(updateHumidity, 5000);
+  // Update humidity every 2 seconds
+  setInterval(fetchLatestHumidity, 2000);
 };
 
-// Gọi hàm khởi tạo
+// Call the init function
 initMixedWidget_humidity();
 
+//Ánh sáng
 var initMixedWidget_lux = function () {
   var element = document.getElementById("kt_mixed_widget_lux_chart");
 
@@ -1096,24 +1089,16 @@ var initMixedWidget_lux = function () {
   }
 
   var height = parseInt(element.getAttribute("data-kt-height"));
-
-  // Khởi tạo giá trị Lux ngẫu nhiên ban đầu
-  var initialLux = Math.floor(Math.random() * 500000); // Giá trị ngẫu nhiên từ 0 đến 499,999
-  var maxLux = 500000;
+  var maxLux = 12000;
 
   var options = {
-    series: [(initialLux / maxLux) * 100], // Tính tỷ lệ phần trăm so với maxLux
+    series: [0], // Khởi tạo với 0
     chart: {
       fontFamily: "inherit",
       height: height,
       type: "radialBar",
       toolbar: {
         show: false,
-      },
-    },
-    grid: {
-      padding: {
-        //top: 0
       },
     },
     plotOptions: {
@@ -1133,7 +1118,7 @@ var initMixedWidget_lux = function () {
             fontSize: "13px",
             fontWeight: 500,
             offsetY: -4,
-            color: KTUtil.getCssVariableValue("--bs-gray-400"), // Màu cố định cho nhãn "Lux"
+            color: KTUtil.getCssVariableValue("--bs-gray-400"),
           },
           value: {
             color: "#FFD700",
@@ -1143,7 +1128,7 @@ var initMixedWidget_lux = function () {
             offsetY: -40,
             show: true,
             formatter: function (val) {
-              return Math.round((val * maxLux) / 100); // Chuyển đổi ngược lại để hiển thị Lux
+              return Math.round((val * maxLux) / 100);
             },
           },
         },
@@ -1158,46 +1143,60 @@ var initMixedWidget_lux = function () {
       lineCap: "round",
     },
     labels: ["Lux"],
-    grid: {
-      padding: {
-        bottom: 0,
-      },
-    },
   };
 
   var chart = new ApexCharts(element, options);
   chart.render();
 
-  // Hàm cập nhật Lux ngẫu nhiên
-  function updateLux() {
-    var newLux = Math.floor(Math.random() * 500000); // Giá trị ngẫu nhiên từ 0 đến 499,999
-    updateChart(newLux);
+  // Hàm lấy dữ liệu Lux từ API
+  function fetchLatestLux() {
+    fetch("http://localhost:8080/api/sensor-data/sortByTime")
+      .then((response) => response.json())
+      .then((data) => {
+        const latestData = data[0]; // Lấy mục mới nhất
+        if (latestData) {
+          const latestLux = latestData.light;
+          updateChart(latestLux);
+        }
+      })
+      .catch((error) => console.error("Error fetching lux data:", error));
   }
 
   // Hàm cập nhật biểu đồ và cảnh báo
   function updateChart(lux) {
-    var percentageLux = (lux / maxLux) * 100; // Tính tỷ lệ phần trăm
+    var percentageLux = (lux / 12000) * 100;
     var color = "#FFD700";
     var alertMessage = "High lux level alert";
     var alertIcon =
       '<i class="fas fa-exclamation-circle text-warning me-3 fs-3"></i>';
 
-    if (lux <= 1000) {
-      color = "#1e90ff"; // Màu xanh lam (Rất tối)
-      alertMessage = "Very low lux level";
+    if (lux <= 10) {
+      color = "#282200"; // Màu cho tối
+      alertMessage = "Very dark";
+    } else if (lux <= 30) {
+      color = "#8a7400"; // Màu cho rất thấp
+      alertMessage = "Very low light";
+    } else if (lux <= 50) {
+      color = "#d4b200"; // Màu cho thấp
+      alertMessage = "Low light";
+    } else if (lux <= 100) {
+      color = "#ecc700"; // Màu cho vừa
+      alertMessage = "Moderate light";
+    } else if (lux <= 200) {
+      color = "#ecc700"; // Màu cho tốt
+      alertMessage = "Good light";
+    } else if (lux <= 500) {
+      color = "#ffe247"; // Màu cho sáng
+      alertMessage = "Bright light";
+    } else if (lux <= 6000) {
+      color = "#ffe34f"; // Màu cho rất sáng
+      alertMessage = "Very bright light";
     } else if (lux <= 10000) {
-      color = "#00bfff"; // Màu xanh nhạt (Tối)
-      alertMessage = "Low lux level";
-    } else if (lux <= 100000) {
-      color = "#32cd32"; // Màu xanh lá cây (Bình Thường)
-      alertMessage = "Normal lux level";
-      alertIcon = '<i class="fas fa-check-circle text-success me-3 fs-3"></i>'; // Icon tích màu xanh
-    } else if (lux <= 300000) {
-      color = "#ffa500"; // Màu cam (Sáng)
-      alertMessage = "High lux level";
+      color = "#ffe65f"; // Màu cho ánh sáng mặt trời
+      alertMessage = "Sunlight level";
     } else {
-      color = "#ff4500"; // Màu đỏ (Rất sáng)
-      alertMessage = "Very high lux level";
+      color = "#f9ffa1"; // Màu cho mức cực cao
+      alertMessage = "Critical lux level alert!";
     }
 
     // Cập nhật màu sắc và giá trị của biểu đồ
@@ -1223,11 +1222,11 @@ var initMixedWidget_lux = function () {
     `;
   }
 
-  // Cập nhật biểu đồ và cảnh báo với giá trị Lux ban đầu
-  updateChart(initialLux);
+  // Lấy dữ liệu Lux ngay khi tải trang
+  fetchLatestLux();
 
-  // Cập nhật Lux mỗi 10 giây
-  setInterval(updateLux, 5000);
+  // Cập nhật Lux mỗi 5 giây
+  setInterval(fetchLatestLux, 2000);
 };
 
 // Gọi hàm khởi tạo

@@ -37,3 +37,15 @@
   transform: scale(1.1); /* Tăng kích thước nút khi bật */
   box-shadow: 0px 0px 15px rgba(220, 53, 69, 0.5); /* Thêm hiệu ứng bóng đổ */
 }
+
+/* Làm nút xám khi bị disabled nhưng vẫn cho phép click */
+button.disabled {
+  background-color: #ccc !important; /* Màu xám */
+  border-color: #ccc !important; /* Màu viền xám */
+  color: #666 !important; /* Màu chữ xám nhạt */
+  transform: none !important; /* Không áp dụng hiệu ứng transform */
+  box-shadow: none !important; /* Không áp dụng hiệu ứng bóng đổ */
+  opacity: 0.6; /* Giảm độ đậm của nút */
+}
+
+

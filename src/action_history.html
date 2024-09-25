@@ -14,10 +14,7 @@ License: For each use you must have a valid license purchased only from above li
   <!--begin::Head-->
   <head>
     <base href="" />
-    <title>
-      Ceres HTML Free - Bootstrap 5 HTML Multipurpose Admin Dashboard Theme by
-      Keenthemes
-    </title>
+    <title>Action History</title>
     <meta
       name="description"
       content="Ceres admin dashboard live demo. Check out all the features of the admin panel. A large number of settings, additional services and widgets."
@@ -355,17 +352,17 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="table-title">Action History</div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-xxl-5"></div>
+                    <div class="col-xxl-7"></div>
                     <div class="col-xxl-2 form-select-wrapper">
                       <label for="filterDropdown" class="form-label"
                         >Filter</label
                       >
                       <select id="filterDropdown" class="form-select">
-                        <option value="#">Select...</option>
+                        <option value="All">All</option>
                         <option value="time">Time</option>
                       </select>
                     </div>
-                    <div class="col-xxl-2 form-control-wrapper">
+                    <!-- <div class="col-xxl-2 form-control-wrapper">
                       <label for="fromField" class="form-label">From</label>
                       <input
                         type="text"
@@ -373,9 +370,9 @@ License: For each use you must have a valid license purchased only from above li
                         class="form-control"
                         placeholder="Enter value"
                       />
-                    </div>
+                    </div> -->
                     <div class="col-xxl-2 form-control-wrapper">
-                      <label for="toField" class="form-label">To</label>
+                      <label for="toField" class="form-label">Value</label>
                       <input
                         type="text"
                         id="toField"
@@ -406,7 +403,7 @@ License: For each use you must have a valid license purchased only from above li
                         <th>Time</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="actionHistoryBody">
                       <!-- Data will be inserted here -->
                     </tbody>
                   </table>
@@ -524,47 +521,118 @@ License: For each use you must have a valid license purchased only from above li
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!--end::Page Custom Javascript-->
+
     <script>
       $(document).ready(function () {
-        var csvFileUrl = "action_history.csv";
+        const filterDropdown = $("#filterDropdown");
+        const toField = $("#toField");
+        const filterButton = $("#filterButton");
 
-        Papa.parse(csvFileUrl, {
-          download: true,
-          header: true,
-          complete: function (results) {
-            // Log dữ liệu CSV
-            console.log("Parsed CSV Data:", results.data);
+        // Set default selection to "All" and disable input field
+        filterDropdown.val("All");
+        toField.prop("disabled", true);
 
-            var data = results.data;
-
-            // Log cấu trúc dữ liệu
-            if (data.length > 0) {
-              console.log("First Row Data:", data[0]);
-              console.log("Column Names:", Object.keys(data[0]));
-            } else {
-              console.log("No data available.");
-            }
-
-            // Khởi tạo DataTables
-            $("#example").DataTable({
-              data: data,
-              columns: [
-                { data: "ID" },
-                { data: "Device" },
-                { data: "Action" },
-                { data: "Time" },
-              ],
-              initComplete: function (settings, json) {
-                console.log(
-                  "DataTables initialized with the following settings:",
-                  settings
-                );
-              },
-            });
-          },
+        filterDropdown.change(function () {
+          if (filterDropdown.val() === "All") {
+            toField.prop("disabled", true).val("");
+          } else if (filterDropdown.val() === "time") {
+            toField.prop("disabled", false).prop("required", true);
+          } else {
+            toField.prop("disabled", false).prop("required", false);
+          }
         });
+
+        // Function to validate time format
+        function isValidTimeFormat(time) {
+          const regex =
+            /^(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}|(?:\d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4})|(?:\d{2}\/\d{2}\/\d{4} - \d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}))$/;
+          return regex.test(time);
+        }
+
+        // Function to handle the Filter button click
+        function handleFilter() {
+          const selectedFilter = filterDropdown.val();
+          const inputValue = toField.val().trim();
+
+          if (selectedFilter === "time" && !isValidTimeFormat(inputValue)) {
+            alert(
+              "Invalid time format. Please use one of the following formats:\n" +
+                "- HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy\n" +
+                "- HH:mm:ss dd/MM/yyyy - HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy - dd/MM/yyyy"
+            );
+            return;
+          }
+
+          let apiUrl = "http://localhost:8080/api/action-histories";
+
+          if (selectedFilter === "time") {
+            const timeRange = inputValue; // Sử dụng giá trị từ ô toField
+            apiUrl = `http://localhost:8080/api/action-histories/filterTime?timeRange=${encodeURIComponent(
+              timeRange
+            )}`;
+          }
+
+          console.log("API called:", apiUrl);
+
+          $.ajax({
+            url: apiUrl,
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              if (dataToDisplay.length === 0) {
+                $("#actionHistoryBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                $("#actionHistoryBody").empty();
+                dataToDisplay.forEach(function (item) {
+                  $("#actionHistoryBody").append(
+                    `<tr>
+                  <td>${item.id}</td>
+                  <td>${item.device}</td>
+                  <td>${item.action}</td>
+                  <td>${item.timeStr}</td>
+                </tr>`
+                  );
+                });
+              }
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#actionHistoryBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              if (xhr.status === 404) {
+                $("#actionHistoryBody").html(
+                  '<tr><td colspan="4">No matching records found</td></tr>'
+                );
+              } else {
+                console.error("Error fetching data", xhr);
+              }
+            },
+          });
+        }
+
+        filterButton.click(handleFilter);
+
+        // Automatically trigger the filter when the page loads with "All"
+        handleFilter();
       });
     </script>
+
     <!--end::Javascript-->
   </body>
 

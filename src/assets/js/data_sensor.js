@@ -36,41 +36,41 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = profileLink.href;
   });
 });
-$("#example").DataTable({
-  initComplete: function () {
-    var table = this.api();
+// $("#example").DataTable({
+//   initComplete: function () {
+//     var table = this.api();
 
-    $("#temp-min, #temp-max").keyup(function () {
-      table.draw();
-    });
-  },
-  drawCallback: function (settings) {
-    var api = this.api();
-    var min = parseFloat($("#temp-min").val(), 10);
-    var max = parseFloat($("#temp-max").val(), 10);
+//     $("#temp-min, #temp-max").keyup(function () {
+//       table.draw();
+//     });
+//   },
+//   drawCallback: function (settings) {
+//     var api = this.api();
+//     var min = parseFloat($("#temp-min").val(), 10);
+//     var max = parseFloat($("#temp-max").val(), 10);
 
-    api.rows().every(function () {
-      var data = this.data();
-      var temp = parseFloat(data[2]) || 0; // Cột 2 là Temperature
-      if (
-        (isNaN(min) && isNaN(max)) ||
-        (isNaN(min) && temp <= max) ||
-        (min <= temp && isNaN(max)) ||
-        (min <= temp && temp <= max)
-      ) {
-        $(this.node()).show();
-      } else {
-        $(this.node()).hide();
-      }
-    });
-  },
-});
-document.addEventListener("DOMContentLoaded", function () {
-  var filterButton = document.getElementById("filterButton");
+//     api.rows().every(function () {
+//       var data = this.data();
+//       var temp = parseFloat(data[2]) || 0; // Cột 2 là Temperature
+//       if (
+//         (isNaN(min) && isNaN(max)) ||
+//         (isNaN(min) && temp <= max) ||
+//         (min <= temp && isNaN(max)) ||
+//         (min <= temp && temp <= max)
+//       ) {
+//         $(this.node()).show();
+//       } else {
+//         $(this.node()).hide();
+//       }
+//     });
+//   },
+// });
+// document.addEventListener("DOMContentLoaded", function () {
+//   var filterButton = document.getElementById("filterButton");
 
-  if (filterButton) {
-    filterButton.addEventListener("click", function () {});
-  } else {
-    console.error('Button with ID "filterButton" not found.');
-  }
-});
+//   if (filterButton) {
+//     filterButton.addEventListener("click", function () {});
+//   } else {
+//     console.error('Button with ID "filterButton" not found.');
+//   }
+// });

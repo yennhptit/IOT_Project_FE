@@ -14,10 +14,7 @@ License: For each use you must have a valid license purchased only from above li
   <!--begin::Head-->
   <head>
     <base href="" />
-    <title>
-      Ceres HTML Free - Bootstrap 5 HTML Multipurpose Admin Dashboard Theme by
-      Keenthemes
-    </title>
+    <title>Data Sensor</title>
     <meta
       name="description"
       content="Ceres admin dashboard live demo. Check out all the features of the admin panel. A large number of settings, additional services and widgets."
@@ -353,32 +350,28 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="table-title">Realtime Home Data</div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-xxl-5"></div>
+                    <div class="col-xxl-7"></div>
                     <div class="col-xxl-2 form-select-wrapper">
                       <label for="filterDropdown" class="form-label"
                         >Filter</label
                       >
                       <select id="filterDropdown" class="form-select">
-                        <option value="#">Select...</option>
+                        <option value="All">All</option>
+                        <option value="id">ID</option>
                         <option value="time">Time</option>
+                        <option value="temp">Temperature</option>
+                        <option value="hum">Humidity</option>
+                        <option value="light">Light</option>
                       </select>
                     </div>
                     <div class="col-xxl-2 form-control-wrapper">
-                      <label for="fromField" class="form-label">From</label>
-                      <input
-                        type="text"
-                        id="fromField"
-                        class="form-control"
-                        placeholder="Enter value"
-                      />
-                    </div>
-                    <div class="col-xxl-2 form-control-wrapper">
-                      <label for="toField" class="form-label">To</label>
+                      <label for="toField" class="form-label">Value</label>
                       <input
                         type="text"
                         id="toField"
                         class="form-control"
                         placeholder="Enter value"
+                        disabled
                       />
                     </div>
                     <div class="col-xxl-1">
@@ -403,10 +396,10 @@ License: For each use you must have a valid license purchased only from above li
                         <th>Temperature (℃)</th>
                         <th>Humidity (%)</th>
                         <th>Light (Lux)</th>
-                        <th>Time (dd/MM/yyy hh:mm)</th>
+                        <th>Time</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="sensorDataBody">
                       <!-- Data will be inserted here -->
                     </tbody>
                   </table>
@@ -495,7 +488,7 @@ License: For each use you must have a valid license purchased only from above li
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!--end::Page Custom Javascript-->
-    <script>
+    <!-- <script>
       $(document).ready(function () {
         var csvFileUrl = "data_sensor.csv";
 
@@ -518,6 +511,7 @@ License: For each use you must have a valid license purchased only from above li
 
             // Khởi tạo DataTables
             $("#example").DataTable({
+              searching: false,
               data: data,
               columns: [
                 { data: "ID" },
@@ -536,8 +530,153 @@ License: For each use you must have a valid license purchased only from above li
           },
         });
       });
-    </script>
+    </script> -->
     <!--end::Javascript-->
+
+    <script>
+      $(document).ready(function () {
+        const filterDropdown = $("#filterDropdown");
+        const toField = $("#toField");
+        const filterButton = $("#filterButton");
+
+        // Set default selection to "All" and disable input field
+        filterDropdown.val("All");
+        toField.prop("disabled", true);
+
+        filterDropdown.change(function () {
+          if (filterDropdown.val() === "All") {
+            toField.prop("disabled", true).val(""); // Disable and clear the input field
+          } else {
+            toField.prop("disabled", false).prop("required", false);
+          }
+        });
+
+        // Function to validate time format
+        function isValidTimeFormat(time) {
+          const regex =
+            /^(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}|(?:\d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4})|(?:\d{2}\/\d{2}\/\d{4} - \d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}))$/;
+          return regex.test(time);
+        }
+        function isValidLightInput(input) {
+          const regex = /^(?:>=|<=|>|<)\d+(\.\d+)?$|^\d+(\.\d+)?$/;
+          return regex.test(input);
+        }
+
+        // Function to handle the Filter button click
+        function handleFilter() {
+          const selectedFilter = filterDropdown.val();
+          const inputValue = toField.val().trim();
+
+          if (selectedFilter === "id" && inputValue === "") {
+            alert("Please enter an ID.");
+            return;
+          }
+
+          if (selectedFilter === "time" && !isValidTimeFormat(inputValue)) {
+            alert(
+              "Invalid time format. Please use one of the following formats:\n" +
+                "- HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy\n" +
+                "- HH:mm:ss dd/MM/yyyy - HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy - dd/MM/yyyy"
+            );
+            return;
+          }
+          if (
+            (selectedFilter === "light" ||
+              selectedFilter === "humidity" ||
+              selectedFilter === "temperature") &&
+            !isValidLightInput(inputValue)
+          ) {
+            alert(
+              "Invalid input. Please use one of the following formats:\n" +
+                "- Comparison operators (e.g., >= 100)\n" +
+                "- Exact value (e.g., 100)"
+            );
+            return;
+          }
+
+          let apiUrl = "http://localhost:8080/api/sensor-data";
+
+          if (selectedFilter === "id") {
+            apiUrl += `/${inputValue}`;
+          } else if (selectedFilter === "time") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterTime?timeRange=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "light") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterLight?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "hum") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterHumidity?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "temp") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterTemp?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          }
+
+          console.log("API called:", apiUrl);
+
+          $.ajax({
+            url: apiUrl,
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              if (dataToDisplay.length === 0) {
+                $("#sensorDataBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                $("#sensorDataBody").empty();
+                dataToDisplay.forEach(function (item) {
+                  $("#sensorDataBody").append(
+                    `<tr>
+                  <td>${item.id}</td>
+                  <td>${item.temperature}</td>
+                  <td>${item.humidity}</td>
+                  <td>${item.light}</td>
+                  <td>${item.timeStr}</td>
+                </tr>`
+                  );
+                });
+              }
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#sensorDataBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              if (xhr.status === 404) {
+                $("#sensorDataBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                console.error("Error fetching data", xhr);
+              }
+            },
+          });
+        }
+
+        filterButton.click(handleFilter);
+
+        // Automatically trigger the filter when the page loads with "All"
+        handleFilter();
+      });
+    </script>
   </body>
 
   <!--end::Body-->

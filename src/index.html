@@ -14,10 +14,7 @@ License: For each use you must have a valid license purchased only from above li
   <!--begin::Head-->
   <head>
     <base href="" />
-    <title>
-      Ceres HTML Free - Bootstrap 5 HTML Multipurpose Admin Dashboard Theme by
-      Keenthemes
-    </title>
+    <title>Dashboard</title>
     <meta
       name="description"
       content="Ceres admin dashboard live demo. Check out all the features of the admin panel. A large number of settings, additional services and widgets."
@@ -70,6 +67,10 @@ License: For each use you must have a valid license purchased only from above li
       rel="stylesheet"
       type="text/css"
     />
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="index.js"></script> -->
+
     <!--end::Global Stylesheets Bundle-->
   </head>
   <!--end::Head-->
@@ -407,6 +408,7 @@ License: For each use you must have a valid license purchased only from above li
                         </div>
                       </div>
                     </div>
+
                     <div class="col-xxl-4">
                       <div class="card">
                         <div class="card-header border-0 pt-5 pb-3">
@@ -483,6 +485,7 @@ License: For each use you must have a valid license purchased only from above li
                         </div>
                       </div>
                     </div>
+
                     <div class="col-xxl-12">
                       <!--begin::Table Widget 1-->
                       <div class="card card-xl-stretch mb-5 mb-xl-8">
@@ -490,14 +493,14 @@ License: For each use you must have a valid license purchased only from above li
                         <div class="card-header border-0 pt-5 pb-3">
                           <!--begin::Card title-->
                           <h3 class="card-title fw-bolder text-gray-800 fs-2">
-                            Home Data Chart
+                            Data Sensor Chart
                           </h3>
                           <!--end::Card title-->
                           <!--begin::Card toolbar-->
                           <div class="card-toolbar">
                             <div class="my-1">
                               <!--begin::Select-->
-                              <select
+                              <!-- <select
                                 class="form-select fw-bold w-125px"
                                 data-control="select2"
                                 data-placeholder="Status"
@@ -509,7 +512,7 @@ License: For each use you must have a valid license purchased only from above li
                                 <option value="2">Today</option>
                                 <option value="3">1 week ago</option>
                                 <option value="4">This month</option>
-                              </select>
+                              </select> -->
                               <!--end::Select-->
                             </div>
                           </div>
@@ -517,7 +520,7 @@ License: For each use you must have a valid license purchased only from above li
                         </div>
                         <!--end::Header-->
                         <!--begin::Body-->
-                        <div class="card-body">
+                        <div class="card-body" style="text-align: center">
                           <!--begin::Chart-->
                           <canvas id="lineChart" height="125"></canvas>
                           <!--end::Chart-->
@@ -613,8 +616,95 @@ License: For each use you must have a valid license purchased only from above li
     <!--end::Page Vendors Javascript-->
     <!--begin::Page Custom Javascript(used by this page)-->
     <script src="assets/js/custom/widgets.js"></script>
+
     <!--end::Page Custom Javascript-->
     <!--end::Javascript-->
   </body>
   <!--end::Body-->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const ctx = document.getElementById("lineChart").getContext("2d");
+      let lineChart;
+
+      function fetchDataAndUpdateChart() {
+        fetch("http://localhost:8080/api/sensor-data/top11latest")
+          .then((response) => response.json())
+          .then((data) => {
+            data.reverse();
+
+            const temperatures = data.map((item) => item.temperature);
+            const humidities = data.map((item) => item.humidity);
+            const lights = data.map((item) => item.light);
+
+            const labels = [];
+            for (let i = 0; i < data.length - 1; i++) {
+              labels.push(`${(data.length - 1 - i) * 2}s ago`);
+            }
+            labels.push("now");
+
+            if (lineChart) {
+              lineChart.data.labels = labels;
+              lineChart.data.datasets[0].data = temperatures;
+              lineChart.data.datasets[1].data = humidities;
+              lineChart.data.datasets[2].data = lights;
+              lineChart.update();
+            } else {
+              lineChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                  labels: labels,
+                  datasets: [
+                    {
+                      label: "Temperature (°C)",
+                      data: temperatures,
+                      borderColor: "rgba(0, 123, 255, 1)", // Màu đường
+                      backgroundColor: "rgba(0, 123, 255, 0.2)", // Màu nền
+                      borderWidth: 2,
+                      fill: false,
+                      pointBackgroundColor: "rgba(0, 123, 255, 1)", // Màu chấm
+                      pointRadius: 5, // Kích thước chấm
+                    },
+                    {
+                      label: "Humidity (%)",
+                      data: humidities,
+                      borderColor: "rgba(40, 167, 69, 1)", // Màu đường
+                      backgroundColor: "rgba(40, 167, 69, 0.2)", // Màu nền
+                      borderWidth: 2,
+                      fill: false,
+                      pointBackgroundColor: "rgba(40, 167, 69, 1)", // Màu chấm
+                      pointRadius: 5,
+                    },
+                    {
+                      label: "Light (Lux)",
+                      data: lights,
+                      borderColor: "rgba(255, 193, 7, 1)", // Màu đường
+                      backgroundColor: "rgba(255, 193, 7, 0.2)", // Màu nền
+                      borderWidth: 2,
+                      fill: false,
+                      pointBackgroundColor: "rgba(255, 193, 7, 1)", // Màu chấm
+                      pointRadius: 5,
+                    },
+                  ],
+                },
+                options: {
+                  responsive: true,
+                  scales: {
+                    x: {
+                      type: "category",
+                    },
+                    y: {
+                      beginAtZero: true,
+                    },
+                  },
+                },
+              });
+            }
+          })
+          .catch((error) => console.error("Error fetching data:", error));
+      }
+
+      fetchDataAndUpdateChart();
+      setInterval(fetchDataAndUpdateChart, 2000);
+    });
+  </script>
 </html>

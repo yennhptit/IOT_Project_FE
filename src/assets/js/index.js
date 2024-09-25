@@ -14,152 +14,346 @@ updateDateTime();
 setInterval(updateDateTime, 1000);
 
 // Thay đổi hình ảnh của quạt
+// function updateFanStatus(action) {
+//   const fanImage = document.getElementById("fanImage");
+//   const isOn = action === "on";
+//   fanImage.src = `./assets/media/fan/${action}.svg`;
+//   if (isOn) fanImage.classList.add("rotate");
+//   else fanImage.classList.remove("rotate");
+
+//   // Cập nhật trạng thái nút
+//   document.getElementById("onButton").classList.toggle("active", isOn);
+//   document.getElementById("offButton").classList.toggle("active", !isOn);
+//   document.getElementById("offButton").classList.toggle("disabled", isOn);
+//   document.getElementById("onButton").classList.toggle("disabled", !isOn);
+
+//   // Gọi API
+//   fetch(`http://localhost:8080/api/action-histories/fan/${action}`, {
+//     method: "POST",
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         console.error(`Error turning ${action} fan:`, response.statusText);
+//         // Khôi phục trạng thái nếu có lỗi
+//         updateFanStatus(isOn ? "off" : "on");
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Fetch error:", error);
+//       updateFanStatus(isOn ? "off" : "on");
+//     });
+// }
+
+// document.getElementById("onButton").addEventListener("click", function () {
+//   updateFanStatus("on");
+// });
+
+// document.getElementById("offButton").addEventListener("click", function () {
+//   updateFanStatus("off");
+// });
+function updateFanStatus(action) {
+  // Call the API to perform the action
+  fetch(`http://localhost:8080/api/action-histories/fan/${action}`, {
+    method: "POST",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        console.error(`Error turning ${action} fan:`, response.statusText);
+        return; // Exit if there's an error
+      }
+      // If action is successful, start checking the status
+      checkFanStatus(action);
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+    });
+}
+
+function checkFanStatus(action) {
+  // Check the latest device status
+  fetch(`http://localhost:8080/api/device-status/latest/Fan`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch device status");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log(action);
+      if (data.status === action) {
+        // If the status matches, update the fan image
+        updateFanImage(action);
+      } else {
+        // If the status does not match, check again after 0.5 seconds
+        setTimeout(() => checkFanStatus(action), 500);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching device status:", error);
+      // Retry after 0.5 seconds if there was an error
+      setTimeout(() => checkFanStatus(action), 500);
+    });
+}
+
+function updateFanImage(action) {
+  const fanImage = document.getElementById("fanImage");
+  const isOn = action === "ON";
+  fanImage.src = `./assets/media/fan/${action}.svg`;
+  if (isOn) fanImage.classList.add("rotate");
+  else fanImage.classList.remove("rotate");
+
+  // Update button states
+  document.getElementById("onButton").classList.toggle("active", isOn);
+  document.getElementById("offButton").classList.toggle("active", !isOn);
+  document.getElementById("offButton").classList.toggle("disabled", isOn);
+  document.getElementById("onButton").classList.toggle("disabled", !isOn);
+}
+
+// document.getElementById("onButton").addEventListener("click", function () {
+//   updateFanStatus("ON");
+// });
+
+// document.getElementById("offButton").addEventListener("click", function () {
+//   updateFanStatus("OFF");
+// });
 document.getElementById("onButton").addEventListener("click", function () {
-  var fanImage = document.getElementById("fanImage");
-  fanImage.src = "./assets/media/fan/on.svg";
-  fanImage.classList.add("rotate"); // Thêm lớp để quay
-  document.getElementById("onButton").classList.add("active");
-  document.getElementById("offButton").classList.remove("active");
+  if (!this.classList.contains("active")) {
+    // Nếu nút không ở trạng thái active
+    updateFanStatus("ON");
+  }
 });
 
 document.getElementById("offButton").addEventListener("click", function () {
-  var fanImage = document.getElementById("fanImage");
-  fanImage.src = "./assets/media/fan/off.svg";
-  fanImage.classList.remove("rotate"); // Bỏ lớp để dừng quay
-  document.getElementById("offButton").classList.add("active");
-  document.getElementById("onButton").classList.remove("active");
+  if (!this.classList.contains("active")) {
+    // Nếu nút không ở trạng thái active
+    updateFanStatus("OFF");
+  }
 });
 
-// // Thay đổi hình ảnh của đèn
-document.addEventListener("DOMContentLoaded", function () {
-  document
-    .getElementById("onButtonLight")
-    .addEventListener("click", function () {
-      document.getElementById("lightImage").src = "./assets/media/light/on.svg";
-      document.getElementById("onButtonLight").classList.add("active");
-      document.getElementById("offButtonLight").classList.remove("active");
+function updateLightStatus(action) {
+  // Call the API to perform the action
+  fetch(`http://localhost:8080/api/action-histories/light/${action}`, {
+    method: "POST",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        console.error(`Error turning ${action} light:`, response.statusText);
+        return; // Exit if there's an error
+      }
+      // If action is successful, start checking the status
+      checkLightStatus(action);
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
     });
+}
 
-  document
-    .getElementById("offButtonLight")
-    .addEventListener("click", function () {
-      document.getElementById("lightImage").src =
-        "./assets/media/light/off.svg";
-      document.getElementById("offButtonLight").classList.add("active");
-      document.getElementById("onButtonLight").classList.remove("active");
+function checkLightStatus(action) {
+  // Check the latest device status
+  fetch(`http://localhost:8080/api/device-status/latest/Light`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch device status");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log(action);
+      if (data.status === action) {
+        // If the status matches, update the fan image
+        updateLightImage(action);
+      } else {
+        // If the status does not match, check again after 0.5 seconds
+        setTimeout(() => checkLightStatus(action), 500);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching device status:", error);
+      // Retry after 0.5 seconds if there was an error
+      setTimeout(() => checkLightStatus(action), 500);
     });
-  document.getElementById("offButtonLight").click();
-  document.getElementById("offAC").click();
-  document.getElementById("offButton").click();
+}
+
+function updateLightImage(action) {
+  const lightImage = document.getElementById("lightImage");
+  const isOn = action === "ON";
+  lightImage.src = `./assets/media/light/${action}.svg`;
+
+  // Update button states
+  document.getElementById("onButtonLight").classList.toggle("active", isOn);
+  document.getElementById("offButtonLight").classList.toggle("active", !isOn);
+  document.getElementById("offButtonLight").classList.toggle("disabled", isOn);
+  document.getElementById("onButtonLight").classList.toggle("disabled", !isOn);
+}
+
+document.getElementById("onButtonLight").addEventListener("click", function () {
+  if (!this.classList.contains("active")) {
+    updateLightStatus("ON");
+  }
 });
 
-// Thay đổi hình ảnh của điều hòa
+document
+  .getElementById("offButtonLight")
+  .addEventListener("click", function () {
+    if (!this.classList.contains("active")) {
+      updateLightStatus("OFF");
+    }
+  });
+
+function updateAirConditionerStatus(action) {
+  console.log(action);
+  // Call the API to perform the action
+  fetch(`http://localhost:8080/api/action-histories/airconditioner/${action}`, {
+    method: "POST",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        console.error(
+          `Error turning ${action} air conditioner:`,
+          response.statusText
+        );
+        return; // Exit if there's an error
+      }
+      // If action is successful, start checking the status
+      checkAirConditionerStatus(action);
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+    });
+}
+
+function checkAirConditionerStatus(action) {
+  // Check the latest device status
+  fetch(`http://localhost:8080/api/device-status/latest/Air Conditioner`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch device status");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log(action);
+      if (data.status === action) {
+        // If the status matches, update the fan image
+        updateAirConditionerImage(action);
+      } else {
+        // If the status does not match, check again after 0.5 seconds
+        setTimeout(() => checkAirConditionerStatus(action), 500);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching device status:", error);
+      // Retry after 0.5 seconds if there was an error
+      setTimeout(() => checkAirConditionerStatus(action), 500);
+    });
+}
+
+function updateAirConditionerImage(action) {
+  const lightImage = document.getElementById("acImage");
+  const isOn = action === "ON";
+  acImage.src = `./assets/media/airconditioner/${action}.svg`;
+
+  // Update button states
+  document.getElementById("onAC").classList.toggle("active", isOn);
+  document.getElementById("offAC").classList.toggle("active", !isOn);
+  document.getElementById("offAC").classList.toggle("disabled", isOn);
+  document.getElementById("onAC").classList.toggle("disabled", !isOn);
+}
+
 document.getElementById("onAC").addEventListener("click", function () {
-  document.getElementById("acImage").src =
-    "./assets/media/airconditioner/on.svg";
-  document.getElementById("onAC").classList.add("active");
-  document.getElementById("offAC").classList.remove("active");
+  if (!this.classList.contains("active")) {
+    updateAirConditionerStatus("ON");
+  }
 });
 
 document.getElementById("offAC").addEventListener("click", function () {
-  document.getElementById("acImage").src =
-    "./assets/media/airconditioner/off.svg";
-  document.getElementById("offAC").classList.add("active");
-  document.getElementById("onAC").classList.remove("active");
-});
-
-const ctx = document.getElementById("lineChart").getContext("2d");
-
-// Hàm để tạo dữ liệu ngẫu nhiên
-function getRandomData(baseValue, range, changeRate) {
-  const change = Math.random() * changeRate * 2 - changeRate;
-  const newValue = baseValue + change;
-  return Math.max(Math.min(newValue, baseValue + range), baseValue - range);
-}
-
-// Tạo dữ liệu ban đầu
-const initialData = {
-  labels: [
-    "30 sec ago",
-    "25 sec ago",
-    "20 sec ago",
-    "15 sec ago",
-    "10 sec ago",
-    "5 sec ago",
-    "now",
-  ],
-  datasets: [
-    {
-      label: "Temperature (°C)",
-      borderColor: "red",
-      backgroundColor: "rgba(255, 99, 132, 0.2)",
-      fill: true,
-      data: Array.from({ length: 7 }, () => getRandomData(23, 1, 0.5)),
-    },
-    {
-      label: "Humidity (%)",
-      borderColor: "blue",
-      backgroundColor: "rgba(54, 162, 235, 0.2)",
-      fill: true,
-      data: Array.from({ length: 7 }, () => getRandomData(60, 2, 1)),
-    },
-    {
-      label: "Light (Lux)",
-      borderColor: "green",
-      backgroundColor: "rgba(75, 192, 192, 0.2)",
-      fill: true,
-      data: Array.from({ length: 7 }, () => getRandomData(320, 10, 5)),
-    },
-  ],
-};
-
-// Tạo biểu đồ
-const chart = new Chart(ctx, {
-  type: "line",
-  data: initialData,
-  options: {
-    responsive: true,
-    scales: {
-      x: {
-        type: "category",
-        labels: initialData.labels,
-      },
-      y: {
-        beginAtZero: false,
-      },
-    },
-  },
-});
-
-// Cập nhật dữ liệu mỗi 5 giây
-setInterval(() => {
-  // Xóa nhãn đầu tiên (30 sec ago)
-  chart.data.labels.shift();
-  // Thêm nhãn mới "now"
-  chart.data.labels.push("now");
-
-  // Thêm dữ liệu mới cho mỗi dòng
-  chart.data.datasets.forEach((dataset, index) => {
-    const baseValue = dataset.data[dataset.data.length - 1];
-    const newData = getRandomData(
-      baseValue,
-      index === 0 ? 1 : index === 1 ? 2 : 10,
-      index === 0 ? 0.5 : index === 1 ? 1 : 5
-    );
-    dataset.data.shift(); // Loại bỏ dữ liệu cũ nhất
-    dataset.data.push(newData);
-  });
-
-  // Cập nhật nhãn còn lại
-  for (let i = 0; i < chart.data.labels.length - 1; i++) {
-    const secondsAgo = parseInt(chart.data.labels[i].split(" ")[0]) - 5;
-    chart.data.labels[i] = `${secondsAgo} sec ago`;
+  if (!this.classList.contains("active")) {
+    updateAirConditionerStatus("OFF");
   }
+});
+// Tương tự cho đèn
+// function updateLightStatus(action) {
+//   const lightImage = document.getElementById("lightImage");
+//   const isOn = action === "on";
+//   lightImage.src = `./assets/media/light/${action}.svg`;
 
-  chart.update(); // Cập nhật biểu đồ
-}, 5000);
+//   // Cập nhật trạng thái nút
+//   document.getElementById("onButtonLight").classList.toggle("active", isOn);
+//   document.getElementById("offButtonLight").classList.toggle("active", !isOn);
+//   document.getElementById("offButtonLight").classList.toggle("disabled", isOn);
+//   document.getElementById("onButtonLight").classList.toggle("disabled", !isOn);
 
-// Chuyển hướng trang
+//   // Gọi API
+//   fetch(`http://localhost:8080/api/action-histories/light/${action}`, {
+//     method: "POST",
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         console.error(`Error turning ${action} light:`, response.statusText);
+//         // Khôi phục trạng thái nếu có lỗi
+//         updateLightStatus(isOn ? "off" : "on");
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Fetch error:", error);
+//       updateLightStatus(isOn ? "off" : "on");
+//     });
+// }
+
+// document.addEventListener("DOMContentLoaded", function () {
+//   document
+//     .getElementById("onButtonLight")
+//     .addEventListener("click", function () {
+//       updateLightStatus("on");
+//     });
+
+//   document
+//     .getElementById("offButtonLight")
+//     .addEventListener("click", function () {
+//       updateLightStatus("off");
+//     });
+// });
+// function updateACStatus(action) {
+//   const acImage = document.getElementById("acImage");
+//   const isOn = action === "on";
+//   acImage.src = `./assets/media/airconditioner/${action}.svg`;
+
+//   // Cập nhật trạng thái nút
+//   document.getElementById("onAC").classList.toggle("active", isOn);
+//   document.getElementById("offAC").classList.toggle("active", !isOn);
+//   document.getElementById("offAC").classList.toggle("disabled", isOn);
+//   document.getElementById("onAC").classList.toggle("disabled", !isOn);
+
+//   // Gọi API
+//   fetch(`http://localhost:8080/api/action-histories/airconditioner/${action}`, {
+//     method: "POST",
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         console.error(
+//           `Error turning ${action} air conditioner:`,
+//           response.statusText
+//         );
+//         // Khôi phục trạng thái nếu có lỗi
+//         updateACStatus(isOn ? "off" : "on");
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Fetch error:", error);
+//       updateACStatus(isOn ? "off" : "on");
+//     });
+// }
+
+// document.addEventListener("DOMContentLoaded", function () {
+//   document.getElementById("onAC").addEventListener("click", function () {
+//     updateACStatus("on");
+//   });
+
+//   document.getElementById("offAC").addEventListener("click", function () {
+//     updateACStatus("off");
+//   });
+// });
+
 document.addEventListener("DOMContentLoaded", function () {
   // Lấy các liên kết theo ID
   const dashboardLink = document.getElementById("dashboardLink");
@@ -183,4 +377,59 @@ document.addEventListener("DOMContentLoaded", function () {
   profileLink.addEventListener("click", function () {
     window.location.href = profileLink.href;
   });
+
+  // Fetch the latest status for the fan
+  fetch("http://localhost:8080/api/device-status/latest/Fan")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Fan status:", data); // Hiển thị trạng thái quạt
+      updateFanImage(data.status); // Cập nhật giao diện người dùng cho quạt
+    })
+    .catch((error) => {
+      console.error(
+        "There was a problem with the fetch operation for the fan:",
+        error
+      );
+    });
+  fetch("http://localhost:8080/api/device-status/latest/Air Conditioner")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Air Conditioner status:", data); // Hiển thị trạng thái điều hòa
+      updateAirConditionerImage(data.status); // Cập nhật giao diện người dùng cho điều hòa
+    })
+    .catch((error) => {
+      console.error(
+        "There was a problem with the fetch operation for the air conditioner:",
+        error
+      );
+    });
+
+  // Fetch the latest status for the light
+  fetch("http://localhost:8080/api/device-status/latest/Light")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Light status:", data); // Hiển thị trạng thái đèn
+      updateLightImage(data.status); // Cập nhật giao diện người dùng cho đèn
+    })
+    .catch((error) => {
+      console.error(
+        "There was a problem with the fetch operation for the light:",
+        error
+      );
+    });
 });
