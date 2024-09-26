@@ -352,7 +352,11 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="table-title">Action History</div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-xxl-7"></div>
+                    <div class="col-xxl-7 d-flex align-items-center">
+                      <h4 class="mb-0">
+                        Times Fan ON: <span id="fanOnCountDisplay">0</span>
+                      </h4>
+                    </div>
                     <div class="col-xxl-2 form-select-wrapper">
                       <label for="filterDropdown" class="form-label"
                         >Filter</label
@@ -384,9 +388,9 @@ License: For each use you must have a valid license purchased only from above li
                       <div class="form-label-space"></div>
                       <button
                         id="filterButton"
-                        class="btn btn-primary w-100 filterButton"
+                        class="btn btn-primary w-150 filterButton"
                       >
-                        Filter
+                        Search
                       </button>
                     </div>
                   </div>
@@ -522,7 +526,7 @@ License: For each use you must have a valid license purchased only from above li
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!--end::Page Custom Javascript-->
 
-    <script>
+    <!-- <script>
       $(document).ready(function () {
         const filterDropdown = $("#filterDropdown");
         const toField = $("#toField");
@@ -630,6 +634,184 @@ License: For each use you must have a valid license purchased only from above li
 
         // Automatically trigger the filter when the page loads with "All"
         handleFilter();
+      });
+    </script> -->
+
+    <script>
+      $(document).ready(function () {
+        const filterDropdown = $("#filterDropdown");
+        const toField = $("#toField");
+        const filterButton = $("#filterButton");
+
+        // Set default selection to "time" and enable input field
+        filterDropdown.val("time");
+        toField.prop("disabled", false).prop("required", true); // Enable and require input field for time
+
+        // Load initial data from the API
+        loadDataFromAPI();
+
+        filterDropdown.change(function () {
+          if (filterDropdown.val() === "All") {
+            toField.prop("disabled", true).val(""); // Disable and clear the input field
+          } else if (filterDropdown.val() === "time") {
+            toField.prop("disabled", false).prop("required", true);
+          } else {
+            toField.prop("disabled", false).prop("required", false);
+          }
+        });
+
+        // Function to validate time format
+        function isValidTimeFormat(time) {
+          const regex =
+            /^(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}|(?:\d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4})|(?:\d{2}\/\d{2}\/\d{4} - \d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}))$/;
+          return regex.test(time);
+        }
+
+        // Function to handle the Filter button click
+        function handleFilter() {
+          const selectedFilter = filterDropdown.val();
+          const inputValue = toField.val().trim();
+
+          if (selectedFilter === "time" && !isValidTimeFormat(inputValue)) {
+            alert(
+              "Invalid time format. Please use one of the following formats:\n" +
+                "- HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy\n" +
+                "- HH:mm:ss dd/MM/yyyy - HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy - dd/MM/yyyy"
+            );
+            return;
+          }
+
+          let apiUrl = "http://localhost:8080/api/action-histories";
+
+          if (selectedFilter === "time") {
+            const timeRange = inputValue; // Use value from toField
+            apiUrl = `http://localhost:8080/api/action-histories/filterTime?timeRange=${encodeURIComponent(
+              timeRange
+            )}`;
+          }
+
+          console.log("API called:", apiUrl);
+
+          $.ajax({
+            url: apiUrl,
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              if (dataToDisplay.length === 0) {
+                $("#actionHistoryBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                $("#actionHistoryBody").empty();
+                dataToDisplay.forEach(function (item) {
+                  $("#actionHistoryBody").append(
+                    `<tr>
+                  <td>${item.id}</td>
+                  <td>${item.device}</td>
+                  <td>${item.action}</td>
+                  <td>${item.timeStr}</td>
+                </tr>`
+                  );
+                });
+              }
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#actionHistoryBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              if (xhr.status === 404) {
+                $("#actionHistoryBody").html(
+                  '<tr><td colspan="4">No matching records found</td></tr>'
+                );
+              } else {
+                console.error("Error fetching data", xhr);
+              }
+            },
+          });
+        }
+
+        filterButton.click(handleFilter);
+
+        // Load initial data from the API
+        function loadDataFromAPI() {
+          $.ajax({
+            url: "http://localhost:8080/api/action-histories",
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              $("#actionHistoryBody").empty();
+              dataToDisplay.forEach(function (item) {
+                $("#actionHistoryBody").append(
+                  `<tr>
+                <td>${item.id}</td>
+                <td>${item.device}</td>
+                <td>${item.action}</td>
+                <td>${item.timeStr}</td>
+              </tr>`
+                );
+              });
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#actionHistoryBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              console.error("Error loading initial data", xhr);
+            },
+          });
+        }
+
+        // Automatically trigger the filter when the page loads with "time"
+        // handleFilter();
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Make an API request to get the Fan ON count for today
+        fetch("http://localhost:8080/api/action-histories/api/fan/action-count")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json(); // Parse JSON response
+          })
+          .then((data) => {
+            // Update the count display in the HTML
+            document.getElementById("fanOnCountDisplay").textContent = data;
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+            document.getElementById("fanOnCountDisplay").textContent =
+              "Error loading data";
+          });
       });
     </script>
 

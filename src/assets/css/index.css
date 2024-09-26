@@ -47,5 +47,14 @@ button.disabled {
   box-shadow: none !important; /* Không áp dụng hiệu ứng bóng đổ */
   opacity: 0.6; /* Giảm độ đậm của nút */
 }
-
-
+.btn-check:checked + .btn.btn-danger,
+.btn-check:active + .btn.btn-danger,
+.btn.btn-danger:focus:not(.btn-active),
+.btn.btn-danger:hover:not(.btn-active),
+.btn.btn-danger:active:not(.btn-active),
+.btn.btn-danger.active,
+.btn.btn-danger.show,
+.show > .btn.btn-danger {
+  color: #ffffff;
+  border-color: #d9214e;
+}

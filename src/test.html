@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+  </head>
+  <body>
+    <h1>WebSocket Test</h1>
+    <input
+      type="text"
+      id="topic"
+      placeholder="Enter topic (e.g., B21DCCN129/esp8266/fan)"
+    />
+    <input type="text" id="command" placeholder="Enter command (e.g., ON)" />
+    <button id="sendButton">Send Command</button>
+
+    <script>
+      const socket = new SockJS("http://localhost:8080/ws");
+      const stompClient = Stomp.over(socket);
+
+      stompClient.connect(
+        {},
+        function (frame) {
+          console.log("Connected: " + frame);
+
+          // Add click event to send button
+          document.getElementById("sendButton").onclick = function () {
+            const topic = document.getElementById("topic").value;
+            const command = document.getElementById("command").value;
+            const message = topic + "," + command; // Format the message
+            stompClient.send("/app/sendDeviceCommand", {}, message);
+          };
+
+          stompClient.subscribe("/topic/deviceCommand", function (message) {
+            console.log("Received: " + message.body);
+          });
+        },
+        function (error) {
+          console.error("Error connecting to WebSocket: ", error);
+        }
+      );
+    </script>
+  </body>
+</html>

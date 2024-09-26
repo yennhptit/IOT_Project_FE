@@ -350,7 +350,12 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="table-title">Realtime Home Data</div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-xxl-7"></div>
+                    <div class="col-xxl-7 d-flex align-items-center">
+                      <h4 class="mb-0">
+                        Times Wind < 40: <span id="windCountDisplay">0</span>
+                      </h4>
+                    </div>
+
                     <div class="col-xxl-2 form-select-wrapper">
                       <label for="filterDropdown" class="form-label"
                         >Filter</label
@@ -378,9 +383,9 @@ License: For each use you must have a valid license purchased only from above li
                       <div class="form-label-space"></div>
                       <button
                         id="filterButton"
-                        class="btn btn-primary w-100 filterButton"
+                        class="btn btn-primary w-150 filterButton"
                       >
-                        Filter
+                        Search
                       </button>
                     </div>
                   </div>
@@ -396,6 +401,7 @@ License: For each use you must have a valid license purchased only from above li
                         <th>Temperature (℃)</th>
                         <th>Humidity (%)</th>
                         <th>Light (Lux)</th>
+                        <th>Wind (Km/h)</th>
                         <th>Time</th>
                       </tr>
                     </thead>
@@ -533,14 +539,14 @@ License: For each use you must have a valid license purchased only from above li
     </script> -->
     <!--end::Javascript-->
 
-    <script>
+    <!-- <script>
       $(document).ready(function () {
         const filterDropdown = $("#filterDropdown");
         const toField = $("#toField");
         const filterButton = $("#filterButton");
 
         // Set default selection to "All" and disable input field
-        filterDropdown.val("All");
+        filterDropdown.val("All"); // mặc định All
         toField.prop("disabled", true);
 
         filterDropdown.change(function () {
@@ -569,6 +575,19 @@ License: For each use you must have a valid license purchased only from above li
 
           if (selectedFilter === "id" && inputValue === "") {
             alert("Please enter an ID.");
+            return;
+          } else if (
+            selectedFilter === "temp" &&
+            (inputValue === "" || inputValue === null)
+          ) {
+            console.log(inputValue); // Kiểm tra giá trị inputValue
+            alert("Please enter in the query box to filter by temperature.");
+            return;
+          } else if (selectedFilter === "hum" && inputValue === "") {
+            alert("Please enter in the query box to filter by humidity.");
+            return;
+          } else if (selectedFilter === "light" && inputValue === "") {
+            alert("Please enter in the query box to filter by light.");
             return;
           }
 
@@ -675,6 +694,235 @@ License: For each use you must have a valid license purchased only from above li
 
         // Automatically trigger the filter when the page loads with "All"
         handleFilter();
+      });
+    </script> -->
+    <script>
+      $(document).ready(function () {
+        const filterDropdown = $("#filterDropdown");
+        const toField = $("#toField");
+        const filterButton = $("#filterButton");
+
+        // Set default selection to "ID" and enable input field
+        filterDropdown.val("id"); // Mặc định ID
+        toField.prop("disabled", false); // Kích hoạt input field
+
+        // Load initial data from the API
+        loadDataFromAPI();
+
+        filterDropdown.change(function () {
+          if (filterDropdown.val() === "All") {
+            toField.prop("disabled", true).val(""); // Disable and clear the input field
+          } else {
+            toField.prop("disabled", false).prop("required", false);
+          }
+        });
+
+        // Function to validate time format
+        function isValidTimeFormat(time) {
+          const regex =
+            /^(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}|(?:\d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4})|(?:\d{2}\/\d{2}\/\d{4} - \d{2}\/\d{2}\/\d{4})|(?:\d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4} - \d{2}:\d{2}:\d{2} \d{2}\/\d{2}\/\d{4}))$/;
+          return regex.test(time);
+        }
+
+        function isValidLightInput(input) {
+          const regex = /^(?:>=|<=|>|<)\d+(\.\d+)?$|^\d+(\.\d+)?$/;
+          return regex.test(input);
+        }
+
+        // Function to handle the Filter button click
+        function handleFilter() {
+          const selectedFilter = filterDropdown.val();
+          const inputValue = toField.val().trim();
+
+          if (selectedFilter === "id" && inputValue === "") {
+            alert("Please enter an ID.");
+            return;
+          } else if (
+            selectedFilter === "temp" &&
+            (inputValue === "" || inputValue === null)
+          ) {
+            console.log(inputValue); // Kiểm tra giá trị inputValue
+            alert("Please enter in the query box to filter by temperature.");
+            return;
+          } else if (selectedFilter === "hum" && inputValue === "") {
+            alert("Please enter in the query box to filter by humidity.");
+            return;
+          } else if (selectedFilter === "light" && inputValue === "") {
+            alert("Please enter in the query box to filter by light.");
+            return;
+          }
+
+          if (selectedFilter === "time" && !isValidTimeFormat(inputValue)) {
+            alert(
+              "Invalid time format. Please use one of the following formats:\n" +
+                "- HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy\n" +
+                "- HH:mm:ss dd/MM/yyyy - HH:mm:ss dd/MM/yyyy\n" +
+                "- dd/MM/yyyy - dd/MM/yyyy"
+            );
+            return;
+          }
+          if (
+            (selectedFilter === "light" ||
+              selectedFilter === "humidity" ||
+              selectedFilter === "temperature") &&
+            !isValidLightInput(inputValue)
+          ) {
+            alert(
+              "Invalid input. Please use one of the following formats:\n" +
+                "- Comparison operators (e.g., >= 100)\n" +
+                "- Exact value (e.g., 100)"
+            );
+            return;
+          }
+
+          let apiUrl = "http://localhost:8080/api/sensor-data";
+
+          if (selectedFilter === "id") {
+            apiUrl += `/${inputValue}`;
+          } else if (selectedFilter === "time") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterTime?timeRange=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "light") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterLight?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "hum") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterHumidity?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          } else if (selectedFilter == "temp") {
+            apiUrl = `http://localhost:8080/api/sensor-data/filterTemp?operator=${encodeURIComponent(
+              inputValue
+            )}`;
+          }
+
+          console.log("API called:", apiUrl);
+
+          $.ajax({
+            url: apiUrl,
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              if (dataToDisplay.length === 0) {
+                $("#sensorDataBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                $("#sensorDataBody").empty();
+                dataToDisplay.forEach(function (item) {
+                  $("#sensorDataBody").append(
+                    `<tr>
+                <td>${item.id}</td>
+                <td>${item.temperature}</td>
+                <td>${item.humidity}</td>
+                <td>${item.light}</td>
+                <td>${item.wind}</td>
+                <td>${item.timeStr}</td>
+            
+              </tr>`
+                  );
+                });
+              }
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#sensorDataBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              if (xhr.status === 404) {
+                $("#sensorDataBody").html(
+                  '<tr><td colspan="5">No matching records found</td></tr>'
+                );
+              } else {
+                console.error("Error fetching data", xhr);
+              }
+            },
+          });
+        }
+
+        filterButton.click(handleFilter);
+
+        // Load initial data from the API
+        function loadDataFromAPI() {
+          $.ajax({
+            url: "http://localhost:8080/api/sensor-data",
+            type: "GET",
+            contentType: "application/json",
+            success: function (data) {
+              const dataToDisplay = Array.isArray(data) ? data : [data];
+
+              $("#sensorDataBody").empty();
+              dataToDisplay.forEach(function (item) {
+                $("#sensorDataBody").append(
+                  `<tr>
+              <td>${item.id}</td>
+              <td>${item.temperature}</td>
+              <td>${item.humidity}</td>
+              <td>${item.light}</td>
+              <td>${item.wind}</td>
+              <td>${item.timeStr}</td>
+            </tr>`
+                );
+              });
+
+              if (!$.fn.DataTable.isDataTable("#example")) {
+                $("#example").DataTable({
+                  searching: false,
+                  order: [[0, "desc"]],
+                });
+              } else {
+                $("#example")
+                  .DataTable()
+                  .clear()
+                  .rows.add($("#sensorDataBody tr"))
+                  .draw();
+              }
+            },
+            error: function (xhr) {
+              console.error("Error loading initial data", xhr);
+            },
+          });
+        }
+
+        // Automatically trigger the filter when the page loads with "ID"
+        // handleFilter();
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Make an API request to get the wind count
+        fetch("http://localhost:8080/api/sensor-data/api/sensor/wind-count")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json(); // Parse JSON response
+          })
+          .then((data) => {
+            // Update the count display
+            document.getElementById("windCountDisplay").textContent = data;
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+            document.getElementById("windCountDisplay").textContent =
+              "Error loading data";
+          });
       });
     </script>
   </body>

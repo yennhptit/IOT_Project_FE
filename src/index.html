@@ -67,11 +67,21 @@ License: For each use you must have a valid license purchased only from above li
       rel="stylesheet"
       type="text/css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <!-- Include STOMP.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="index.js"></script> -->
 
     <!--end::Global Stylesheets Bundle-->
+    <style>
+      /* Hide both charts initially */
+      #lineChart,
+      #windChart {
+        display: none;
+      }
+    </style>
   </head>
   <!--end::Head-->
   <!--begin::Body-->
@@ -276,7 +286,7 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="card-body">
                   <!--begin::Row-->
                   <div class="row gy-5 g-xl-8">
-                    <div class="col-xxl-4">
+                    <div class="col-xxl-3">
                       <div class="card">
                         <div class="card-header border-0 pt-5 pb-3">
                           <!--begin::Card title-->
@@ -304,7 +314,7 @@ License: For each use you must have a valid license purchased only from above li
                         </div>
                       </div>
                     </div>
-                    <div class="col-xxl-4">
+                    <div class="col-xxl-3">
                       <div class="card">
                         <div class="card-header border-0 pt-5 pb-3">
                           <!--begin::Card title-->
@@ -334,7 +344,7 @@ License: For each use you must have a valid license purchased only from above li
                         </div>
                       </div>
                     </div>
-                    <div class="col-xxl-4">
+                    <div class="col-xxl-3">
                       <div class="card">
                         <div class="card-header border-0 pt-5 pb-3">
                           <!--begin::Card title-->
@@ -359,6 +369,36 @@ License: For each use you must have a valid license purchased only from above li
                               class="fas fa-exclamation-circle text-warning me-3 fs-3"
                             ></i
                             >High Lux Alert</span
+                          >
+                          <!--end::Label-->
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-xxl-3">
+                      <div class="card">
+                        <div class="card-header border-0 pt-5 pb-3">
+                          <!--begin::Card title-->
+                          <h3 class="card-title fw-bolder text-gray-800 fs-2">
+                            Wind
+                          </h3>
+                        </div>
+                        <div class="card-body pt-5">
+                          <!--begin::Chart-->
+                          <div
+                            id="kt_mixed_widget_wind_chart"
+                            data-kt-height="250"
+                            class="mb-n15"
+                          ></div>
+                          <!--end::Chart-->
+                          <!--begin::Label-->
+                          <span
+                            id="wind-alert"
+                            class="badge badge-lg badge-light-warning w-100 text-gray-800 text-start d-flex align-items-center"
+                          >
+                            <i
+                              class="fas fa-exclamation-circle text-warning me-3 fs-3"
+                            ></i
+                            >High Wind Speed Alert</span
                           >
                           <!--end::Label-->
                         </div>
@@ -487,47 +527,33 @@ License: For each use you must have a valid license purchased only from above li
                     </div>
 
                     <div class="col-xxl-12">
-                      <!--begin::Table Widget 1-->
                       <div class="card card-xl-stretch mb-5 mb-xl-8">
-                        <!--begin::Header-->
                         <div class="card-header border-0 pt-5 pb-3">
-                          <!--begin::Card title-->
                           <h3 class="card-title fw-bolder text-gray-800 fs-2">
-                            Data Sensor Chart
+                            Chart
                           </h3>
-                          <!--end::Card title-->
-                          <!--begin::Card toolbar-->
                           <div class="card-toolbar">
                             <div class="my-1">
-                              <!--begin::Select-->
-                              <!-- <select
+                              <select
+                                id="chartSelect"
                                 class="form-select fw-bold w-125px"
-                                data-control="select2"
-                                data-placeholder="Status"
-                                data-hide-search="true"
+                                onchange="updateChart()"
                               >
-                                <option value="1" selected="selected">
-                                  Filter
+                                <option value="sensorData">
+                                  Temperature, Humidity, Light
                                 </option>
-                                <option value="2">Today</option>
-                                <option value="3">1 week ago</option>
-                                <option value="4">This month</option>
-                              </select> -->
-                              <!--end::Select-->
+                                <option value="windData" selected="selected">
+                                  Wind Speed
+                                </option>
+                              </select>
                             </div>
                           </div>
-                          <!--end::Card toolbar-->
                         </div>
-                        <!--end::Header-->
-                        <!--begin::Body-->
                         <div class="card-body" style="text-align: center">
-                          <!--begin::Chart-->
                           <canvas id="lineChart" height="125"></canvas>
-                          <!--end::Chart-->
+                          <canvas id="windChart" height="125"></canvas>
                         </div>
-                        <!--end::Body-->
                       </div>
-                      <!--end::Table Widget 1-->
                     </div>
                   </div>
 
@@ -621,7 +647,7 @@ License: For each use you must have a valid license purchased only from above li
     <!--end::Javascript-->
   </body>
   <!--end::Body-->
-  <script>
+  <!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
       const ctx = document.getElementById("lineChart").getContext("2d");
       let lineChart;
@@ -706,5 +732,339 @@ License: For each use you must have a valid license purchased only from above li
       fetchDataAndUpdateChart();
       setInterval(fetchDataAndUpdateChart, 2000);
     });
-  </script>
+  </script> -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+  <!-- Include STOMP.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- <script>
+    let lineChart, windChart;
+    const ctx = document.getElementById("lineChart").getContext("2d");
+    const windCtx = document.getElementById("windChart").getContext("2d");
+
+    // Function to update the chart based on the selection
+    function updateChart() {
+      const selectedChart = document.getElementById("chartSelect").value;
+
+      // Hide/show charts based on selection
+      if (selectedChart === "sensorData") {
+        document.getElementById("lineChart").style.display = "block";
+        document.getElementById("windChart").style.display = "none";
+        fetchDataAndUpdateChart();
+        setInterval(fetchDataAndUpdateChart, 2000);
+      } else {
+        document.getElementById("lineChart").style.display = "none";
+        document.getElementById("windChart").style.display = "block";
+        fetchWindDataAndUpdateChart();
+        setInterval(fetchWindDataAndUpdateChart, 2000);
+      }
+    }
+
+    function fetchDataAndUpdateChart() {
+      fetch("http://localhost:8080/api/sensor-data/top11latest")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.reverse();
+          const temperatures = data.map((item) => item.temperature);
+          const humidities = data.map((item) => item.humidity);
+          const lights = data.map((item) => item.light);
+
+          const labels = [];
+          for (let i = 0; i < data.length - 1; i++) {
+            labels.push(`${(data.length - 1 - i) * 2}s ago`);
+          }
+          labels.push("now");
+
+          if (lineChart) {
+            lineChart.data.labels = labels;
+            lineChart.data.datasets[0].data = temperatures;
+            lineChart.data.datasets[1].data = humidities;
+            lineChart.data.datasets[2].data = lights;
+            lineChart.update();
+          } else {
+            lineChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Temperature (°C)",
+                    data: temperatures,
+                    borderColor: "rgba(0, 123, 255, 1)",
+                    backgroundColor: "rgba(0, 123, 255, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(0, 123, 255, 1)",
+                    pointRadius: 5,
+                  },
+                  {
+                    label: "Humidity (%)",
+                    data: humidities,
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    backgroundColor: "rgba(40, 167, 69, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(40, 167, 69, 1)",
+                    pointRadius: 5,
+                  },
+                  {
+                    label: "Light (Lux)",
+                    data: lights,
+                    borderColor: "rgba(255, 193, 7, 1)",
+                    backgroundColor: "rgba(255, 193, 7, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(255, 193, 7, 1)",
+                    pointRadius: 5,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    type: "category",
+                  },
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              },
+            });
+          }
+        })
+        .catch((error) => console.error("Error fetching data:", error));
+    }
+
+    function fetchWindDataAndUpdateChart() {
+      fetch("http://localhost:8080/api/sensor-data/top11latest")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.reverse();
+          const winds = data.map((item) => item.wind);
+
+          const labels = [];
+          for (let i = 0; i < data.length - 1; i++) {
+            labels.push(`${(data.length - 1 - i) * 2}s ago`);
+          }
+          labels.push("now");
+
+          if (windChart) {
+            windChart.data.labels = labels;
+            windChart.data.datasets[0].data = winds;
+            windChart.update();
+          } else {
+            windChart = new Chart(windCtx, {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Wind Speed (km/h)",
+                    data: winds,
+                    borderColor: "rgba(255, 0, 0, 1)",
+                    backgroundColor: "rgba(255, 0, 0, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(255, 0, 0, 1)",
+                    pointRadius: 5,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    type: "category",
+                  },
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              },
+            });
+          }
+        })
+        .catch((error) => console.error("Error fetching wind data:", error));
+    }
+
+    // Initial chart setup
+    updateChart(); // Call this function to set the initial chart
+  </script> -->
+
+  <!-- <script>
+    let lineChart, windChart;
+
+    function updateChart() {
+      const selectedChart = document.getElementById("chartSelect").value;
+
+      const lineChartElement = document.getElementById("lineChart");
+      const windChartElement = document.getElementById("windChart");
+
+      if (selectedChart === "sensorData") {
+        lineChartElement.style.display = "block";
+        windChartElement.style.display = "none";
+        fetchDataAndUpdateChart();
+      } else {
+        lineChartElement.style.display = "none";
+        windChartElement.style.display = "block";
+        fetchWindDataAndUpdateChart();
+      }
+    }
+
+    // Function to fetch data for temperature, humidity, and light
+    function fetchDataAndUpdateChart() {
+      fetch("http://localhost:8080/api/sensor-data/top11latest")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.reverse();
+
+          const temperatures = data.map((item) => item.temperature);
+          const humidities = data.map((item) => item.humidity);
+          const lights = data.map((item) => item.light);
+
+          const labels = [];
+          for (let i = 0; i < data.length - 1; i++) {
+            labels.push(`${(data.length - 1 - i) * 2}s ago`);
+          }
+          labels.push("now");
+
+          if (lineChart) {
+            lineChart.data.labels = labels;
+            lineChart.data.datasets[0].data = temperatures;
+            lineChart.data.datasets[1].data = humidities;
+            lineChart.data.datasets[2].data = lights;
+            lineChart.update();
+          } else {
+            lineChart = new Chart(lineChartElement.getContext("2d"), {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Temperature (°C)",
+                    data: temperatures,
+                    borderColor: "rgba(0, 123, 255, 1)",
+                    backgroundColor: "rgba(0, 123, 255, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(0, 123, 255, 1)",
+                    pointRadius: 5,
+                  },
+                  {
+                    label: "Humidity (%)",
+                    data: humidities,
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    backgroundColor: "rgba(40, 167, 69, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(40, 167, 69, 1)",
+                    pointRadius: 5,
+                  },
+                  {
+                    label: "Light (Lux)",
+                    data: lights,
+                    borderColor: "rgba(255, 193, 7, 1)",
+                    backgroundColor: "rgba(255, 193, 7, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(255, 193, 7, 1)",
+                    pointRadius: 5,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    type: "category",
+                  },
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              },
+            });
+          }
+        })
+        .catch((error) => console.error("Error fetching data:", error));
+    }
+
+    // Function to fetch wind speed data
+    function fetchWindDataAndUpdateChart() {
+      fetch("http://localhost:8080/api/sensor-data/top11latest")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.reverse();
+
+          const winds = data.map((item) => item.wind);
+
+          const labels = [];
+          for (let i = 0; i < data.length - 1; i++) {
+            labels.push(`${(data.length - 1 - i) * 2}s ago`);
+          }
+          labels.push("now");
+
+          if (windChart) {
+            windChart.data.labels = labels;
+            windChart.data.datasets[0].data = winds;
+            windChart.update();
+          } else {
+            windChart = new Chart(windChartElement.getContext("2d"), {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Wind Speed (km/h)",
+                    data: winds,
+                    borderColor: "rgba(255, 0, 0, 1)",
+                    backgroundColor: "rgba(255, 0, 0, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: "rgba(255, 0, 0, 1)",
+                    pointRadius: 5,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    type: "category",
+                  },
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              },
+            });
+          }
+        })
+        .catch((error) => console.error("Error fetching wind data:", error));
+    }
+
+    // Initialize with wind chart
+    updateChart();
+  </script> -->
 </html>

@@ -41970,7 +41970,7 @@ a:hover {
 .show > .btn.btn-danger {
   color: #ffffff;
   border-color: #d9214e;
-  background-color: #d9214e !important;
+  /* background-color: #d9214e !important; */
 }
 .btn-check:checked + .btn.btn-danger i,
 .btn-check:active + .btn.btn-danger i,
