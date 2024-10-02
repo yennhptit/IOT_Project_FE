@@ -46,57 +46,124 @@ stompClient.connect(
   function (frame) {
     console.log("Connected: " + frame);
 
-    // Add click event to send button
-    document.getElementById("onButton").onclick = function () {
-      const topic = "B21DCCN129/esp8266/fan"; // Predefined topic
-      const message = "ON"; // Predefined message
+    // Hàm kiểm tra trạng thái hiện tại của thiết bị
+    async function checkDeviceStatus(device) {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/action-histories/latest-action-of-device?device=${device}`
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const status = await response.text();
+        return status.trim();
+      } catch (error) {
+        console.error("Error checking device status:", error);
+        return null;
+      }
+    }
 
-      // Send the message via WebSocket
+    // Hàm gửi lệnh đến thiết bị
+    function sendDeviceCommand(topic, message) {
       stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
-
       console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
-    document.getElementById("offButton").onclick = function () {
-      const topic = "B21DCCN129/esp8266/fan"; // Predefined topic
-      const message = "OFF"; // Predefined message
+    }
 
-      // Send the message via WebSocket
-      stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+    // Hàm tạo xử lý sự kiện click cho các nút
+    function createClickHandler(buttonId, topic, device, action) {
+      document.getElementById(buttonId).onclick = async function () {
+        const currentStatus = await checkDeviceStatus(device);
+        if (
+          (action === "ON" && currentStatus === "OFF") ||
+          (action === "OFF" && currentStatus === "ON")
+        ) {
+          sendDeviceCommand(topic, action);
+        } else {
+          console.log(
+            `Device ${device} is already ${action} or status check failed. Command not sent.`
+          );
+        }
+      };
+    }
 
-      console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
-    document.getElementById("onButtonLight").onclick = function () {
-      const topic = "B21DCCN129/esp8266/light"; // Predefined topic
-      const message = "ON";
-      // Send the message via WebSocket
-      stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+    // // Add click event to send button
+    // document.getElementById("onButton").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/fan"; // Predefined topic
+    //   const message = "ON"; // Predefined message
 
-      console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
-    document.getElementById("offButtonLight").onclick = function () {
-      const topic = "B21DCCN129/esp8266/light"; // Predefined topic
-      const message = "OFF";
-      // Send the message via WebSocket
-      stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
 
-      console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
-    document.getElementById("onAC").onclick = function () {
-      const topic = "B21DCCN129/esp8266/airconditioner"; // Predefined topic
-      const message = "ON";
-      // Send the message via WebSocket
-      stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // document.getElementById("offButton").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/fan"; // Predefined topic
+    //   const message = "OFF"; // Predefined message
 
-      console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
-    document.getElementById("offAC").onclick = function () {
-      const topic = "B21DCCN129/esp8266/airconditioner"; // Predefined topic
-      const message = "OFF";
-      // Send the message via WebSocket
-      stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
 
-      console.log(`Sent message: ${message} to topic: ${topic}`);
-    };
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // document.getElementById("onButtonLight").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/light"; // Predefined topic
+    //   const message = "ON";
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // document.getElementById("offButtonLight").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/light"; // Predefined topic
+    //   const message = "OFF";
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // document.getElementById("onAC").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/airconditioner"; // Predefined topic
+    //   const message = "ON";
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // document.getElementById("offAC").onclick = function () {
+    //   const topic = "B21DCCN129/esp8266/airconditioner"; // Predefined topic
+    //   const message = "OFF";
+    //   // Send the message via WebSocket
+    //   stompClient.send("/app/sendDeviceCommand", {}, `${topic},${message}`);
+
+    //   console.log(`Sent message: ${message} to topic: ${topic}`);
+    // };
+    // Tạo xử lý sự kiện cho các nút
+    createClickHandler("onButton", "B21DCCN129/esp8266/fan", "Fan", "ON");
+    createClickHandler("offButton", "B21DCCN129/esp8266/fan", "Fan", "OFF");
+    createClickHandler(
+      "onButtonLight",
+      "B21DCCN129/esp8266/light",
+      "Light",
+      "ON"
+    );
+    createClickHandler(
+      "offButtonLight",
+      "B21DCCN129/esp8266/light",
+      "Light",
+      "OFF"
+    );
+    createClickHandler(
+      "onAC",
+      "B21DCCN129/esp8266/airconditioner",
+      "Air Conditioner",
+      "ON"
+    );
+    createClickHandler(
+      "offAC",
+      "B21DCCN129/esp8266/airconditioner",
+      "Air Conditioner",
+      "OFF"
+    );
 
     stompClient.subscribe("/topic/deviceStatus", function (message) {
       console.log("Device Status Update: " + message.body);
@@ -1656,10 +1723,26 @@ var initMixedWidget_wind = function () {
   chart.render();
 
   // Fetch the latest wind data from the API
+  async function checkDeviceStatus(device) {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/action-histories/latest-action-of-device?device=${device}`
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const status = await response.text();
+      return status.trim();
+    } catch (error) {
+      console.error("Error checking device status:", error);
+      return null;
+    }
+  }
+
   function fetchLatestWind() {
     fetch("http://localhost:8080/api/sensor-data/sortByTime")
       .then((response) => response.json())
-      .then((data) => {
+      .then(async (data) => {
         const latestData = data[0]; // Get the most recent entry
         if (latestData) {
           const latestWind = latestData.wind;
@@ -1668,13 +1751,25 @@ var initMixedWidget_wind = function () {
             latestWind < 40 &&
             !document.getElementById("onButton").classList.contains("active")
           ) {
-            const topic = "B21DCCN129/esp8266/fan";
-            const message = "ON";
-            // Send the message via WebSocket
-            stompClient.send(
-              "/app/sendDeviceCommand",
-              {},
-              `${topic},${message}`
+            const fanStatus = await checkDeviceStatus("Fan");
+            if (fanStatus === "OFF") {
+              const topic = "B21DCCN129/esp8266/fan";
+              const message = "ON";
+              // Send the message via WebSocket
+              stompClient.send(
+                "/app/sendDeviceCommand",
+                {},
+                `${topic},${message}`
+              );
+              console.log("Fan turned ON due to low wind speed");
+            } else {
+              console.log(
+                "Fan is already ON or status check failed. Command not sent."
+              );
+            }
+          } else {
+            console.log(
+              "Wind speed is not low enough or fan button is already active."
             );
           }
         }
